@@ -1,0 +1,36 @@
+name: CI Pipeline for Azure Databricks
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    env:
+      DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+      DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Install Databricks CLI
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/databricks/setup-cli/main/install.sh | sh
+
+      - name: Verify Databricks CLI
+        run: databricks -v
+
+      - name: Verify Databricks authentication
+        run: databricks current-user me
+
+      - name: Upload sample data to DBFS
+        run: |
+          databricks fs cp sample_sales.csv dbfs:/Volumes/jcdatabricks/default/filestore/sample_sales.csv --overwrite
+
